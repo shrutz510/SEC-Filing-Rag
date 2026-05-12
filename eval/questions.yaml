@@ -1,0 +1,82 @@
+# Eval set for the Financial Intelligence Assistant.
+#
+# Each question is tagged with the retrieval `archetype` it should require.
+# `demo: true` flags it for inclusion in the static GitHub Pages demo
+# (scripts/precompute_demo.py reads this).
+#
+# Tags:
+#   semantic    — passage retrieval is sufficient
+#   relational  — answerable from graph metadata alone
+#   hybrid      — needs graph step + scoped passage retrieval
+
+questions:
+  # ─── Semantic (vector RAG) ────────────────────────────────────────────
+  - id: sem-01
+    archetype: semantic
+    question: "Summarize Apple's AI-related risk disclosures in their most recent 10-K."
+    demo: true
+    expected_entities: ["Apple"]
+
+  - id: sem-02
+    archetype: semantic
+    question: "What does Microsoft say about cybersecurity risk in fiscal year 2024?"
+    demo: true
+    expected_entities: ["Microsoft"]
+
+  - id: sem-03
+    archetype: semantic
+    question: "Describe NVIDIA's stated dependence on TSMC for semiconductor manufacturing."
+
+  - id: sem-04
+    archetype: semantic
+    question: "How does Tesla describe its battery supply concentration risk?"
+
+  - id: sem-05
+    archetype: semantic
+    question: "Summarize Meta's discussion of advertising-revenue concentration."
+
+  # ─── Relational (Cypher) ──────────────────────────────────────────────
+  - id: rel-01
+    archetype: relational
+    question: "Who audits Tesla, and what other companies does that auditor audit?"
+    demo: true
+
+  - id: rel-02
+    archetype: relational
+    question: "List NVIDIA's named customers and competitors from its filings."
+    demo: true
+
+  - id: rel-03
+    archetype: relational
+    question: "Which of these companies acquired another company in the last 3 years: Apple, Microsoft, Meta, NVIDIA, Tesla?"
+
+  - id: rel-04
+    archetype: relational
+    question: "Show all executives mentioned in our corpus and the companies they work for."
+
+  - id: rel-05
+    archetype: relational
+    question: "Which companies operate in China according to their disclosures?"
+
+  # ─── Hybrid (graph → vector) ──────────────────────────────────────────
+  - id: hyb-01
+    archetype: hybrid
+    question: "How do companies audited by PricewaterhouseCoopers describe climate-related risk?"
+    demo: true
+
+  - id: hyb-02
+    archetype: hybrid
+    question: "Of NVIDIA's named customers, which ones also disclose supply-chain concentration risk?"
+    demo: true
+
+  - id: hyb-03
+    archetype: hybrid
+    question: "For the companies that compete with Microsoft, what do they say about AI investment?"
+
+  - id: hyb-04
+    archetype: hybrid
+    question: "Among companies operating in China, what regulatory risks do they highlight?"
+
+  - id: hyb-05
+    archetype: hybrid
+    question: "Compare how the largest 3 cloud providers describe data-center power and water usage."
