@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SEC Filing RAG — Hybrid RAG + Knowledge Graph</title>
+<meta name="description" content="A hybrid RAG + knowledge graph assistant over SEC filings. Built with LangChain & LangGraph." />
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-2: #131a32;
+    --fg: #e6edf6;
+    --muted: #93a1c2;
+    --border: #243056;
+    --accent: #6366f1;
+    --accent-2: #22d3ee;
+    --semantic: #22d3ee;
+    --relational: #a78bfa;
+    --hybrid: #f59e0b;
+    --code-bg: #0f1530;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header { padding: 28px 32px 18px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 14px; }
+  header .links { margin-top: 12px; font-size: 13px; }
+  header .links a { margin-right: 16px; }
+
+  .layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 90px); }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+  aside { border-right: 1px solid var(--border); padding: 20px 18px; overflow-y: auto; }
+  aside h3 { margin: 18px 0 8px; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted); }
+  aside h3:first-child { margin-top: 0; }
+  .q-btn { display: block; width: 100%; text-align: left; background: transparent;
+    color: var(--fg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px; font-size: 13px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s; }
+  .q-btn:hover { border-color: var(--accent); background: var(--bg-2); }
+  .q-btn.active { border-color: var(--accent); background: var(--bg-2); }
+  .q-btn .tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 2px 6px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+  .tag.semantic   { background: rgba(34,211,238,0.15);  color: var(--semantic); }
+  .tag.relational { background: rgba(167,139,250,0.15); color: var(--relational); }
+  .tag.hybrid     { background: rgba(245,158,11,0.15);  color: var(--hybrid); }
+
+  main { padding: 28px 36px; max-width: 920px; }
+  .empty { color: var(--muted); padding: 60px 0; text-align: center; }
+  .route { display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 10px; border-radius: 999px; font-size: 12px;
+    background: var(--bg-2); border: 1px solid var(--border); margin-bottom: 16px; }
+  .route .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); }
+  .route.semantic   .dot { background: var(--semantic); }
+  .route.relational .dot { background: var(--relational); }
+  .route.hybrid     .dot { background: var(--hybrid); }
+
+  h2.q { margin: 0 0 16px; font-size: 18px; font-weight: 500; line-height: 1.4; }
+  .answer { background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
+  .answer .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin-bottom: 8px; }
+
+  details { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg-2); }
+  details summary { padding: 12px 16px; cursor: pointer; font-size: 13px;
+    color: var(--muted); list-style: none; user-select: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "▸"; display: inline-block; margin-right: 8px;
+    transition: transform 0.15s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  details > div { padding: 0 16px 16px; }
+
+  pre.cypher { background: var(--code-bg); padding: 12px 14px; border-radius: 6px;
+    font: 12px/1.5 ui-monospace, "SF Mono", Menlo, monospace; overflow-x: auto;
+    color: #cbd5e1; margin: 0; }
+  .chunk { border-left: 2px solid var(--border); padding: 8px 12px;
+    margin: 0 0 10px; font-size: 13px; }
+  .chunk .meta { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); margin-bottom: 4px; }
+  table.facts { width: 100%; border-collapse: collapse; font-size: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  table.facts td { padding: 6px 10px; border-top: 1px solid var(--border);
+    vertical-align: top; color: #cbd5e1; }
+  table.facts td.k { color: var(--muted); white-space: nowrap; width: 1%; }
+  table.facts td.v { word-break: break-word; }
+
+  .footer-note { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SEC Filing RAG</h1>
+  <div class="sub">Hybrid RAG + Knowledge Graph over SEC filings. Built with LangChain &amp; LangGraph.</div>
+  <div class="links">
+    <a href="https://github.com/&lt;your-username&gt;/sec-filing-rag">GitHub repo</a>
+    <a href="./graph.html">Explore the entity graph →</a>
+    <a href="https://www.sec.gov/edgar/searchedgar/companysearch">SEC EDGAR</a>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <h3>Semantic — vector RAG</h3>
+    <div id="group-semantic"></div>
+    <h3>Relational — Cypher / graph</h3>
+    <div id="group-relational"></div>
+    <h3>Hybrid — graph + RAG</h3>
+    <div id="group-hybrid"></div>
+    <p style="color: var(--muted); font-size: 11px; margin-top: 28px; line-height: 1.55;">
+      Static demo: all answers pre-computed by running the real pipeline
+      against the SEC corpus, then serialized to JSON. Clone the repo to ask
+      your own questions.
+    </p>
+  </aside>
+
+  <main id="main">
+    <div class="empty">Select a question from the left to see how the router classifies it,
+      which retrieval mode runs, and the synthesized answer with citations.</div>
+  </main>
+</div>
+
+<script>
+  const main = document.getElementById('main');
+  const groups = {
+    semantic:   document.getElementById('group-semantic'),
+    relational: document.getElementById('group-relational'),
+    hybrid:     document.getElementById('group-hybrid'),
+  };
+  let data = [];
+  let activeBtn = null;
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderFacts(rows) {
+    if (!rows || !rows.length) return '';
+    const out = ['<table class="facts">'];
+    rows.forEach((row, i) => {
+      Object.entries(row).forEach(([k, v]) => {
+        out.push(`<tr><td class="k">${escapeHtml(k)}</td><td class="v">${
+          Array.isArray(v) ? escapeHtml(v.join(', ')) : escapeHtml(JSON.stringify(v))
+        }</td></tr>`);
+      });
+      if (i < rows.length - 1) out.push('<tr><td colspan="2" style="padding:4px"></td></tr>');
+    });
+    out.push('</table>');
+    return out.join('');
+  }
+
+  function renderChunks(chunks) {
+    if (!chunks || !chunks.length) return '';
+    return chunks.map(c =>
+      `<div class="chunk">
+         <div class="meta">${escapeHtml(c.ticker)} · FY${escapeHtml(c.fiscal_year)} · Item ${escapeHtml(c.item_no)}</div>
+         <div>${escapeHtml(c.text)}</div>
+       </div>`
+    ).join('');
+  }
+
+  function render(item) {
+    const route = item.query_type || 'semantic';
+    const html = `
+      <div class="route ${route}"><span class="dot"></span> Route: <strong>${route}</strong></div>
+      <h2 class="q">${escapeHtml(item.question)}</h2>
+      <div class="answer">
+        <div class="label">Answer</div>
+        <div>${escapeHtml(item.answer)}</div>
+      </div>
+      ${item.cypher ? `
+        <details open>
+          <summary>Cypher query</summary>
+          <div><pre class="cypher">${escapeHtml(item.cypher)}</pre></div>
+        </details>` : ''}
+      ${item.graph_facts && item.graph_facts.length ? `
+        <details open>
+          <summary>Graph rows (${item.graph_facts.length})</summary>
+          <div>${renderFacts(item.graph_facts)}</div>
+        </details>` : ''}
+      ${item.chunks && item.chunks.length ? `
+        <details ${item.query_type === 'semantic' ? 'open' : ''}>
+          <summary>Retrieved filing passages (${item.chunks.length})</summary>
+          <div>${renderChunks(item.chunks)}</div>
+        </details>` : ''}
+      <div class="footer-note">
+        This answer was produced by running the full pipeline locally and
+        serializing the result. Cypher, retrieved passages, and the
+        router's decision are all real artifacts from that run.
+      </div>`;
+    main.innerHTML = html;
+  }
+
+  fetch('./data/precomputed.json')
+    .then(r => r.json())
+    .then(items => {
+      data = items;
+      items.forEach((item, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'q-btn';
+        btn.innerHTML = `<span class="tag ${item.query_type}">${item.query_type}</span>${escapeHtml(item.question)}`;
+        btn.addEventListener('click', () => {
+          if (activeBtn) activeBtn.classList.remove('active');
+          btn.classList.add('active');
+          activeBtn = btn;
+          render(item);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        (groups[item.query_type] || groups.semantic).appendChild(btn);
+      });
+    })
+    .catch(err => {
+      main.innerHTML = `<div class="empty">Failed to load demo data: ${escapeHtml(err.message)}</div>`;
+    });
+</script>
+
+</body>
+</html>

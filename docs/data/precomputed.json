@@ -1,0 +1,131 @@
+[
+  {
+    "question": "Summarize Apple's AI-related risk disclosures in their most recent 10-K.",
+    "query_type": "semantic",
+    "answer": "Apple's most recent 10-K frames AI as both a competitive necessity and a source of new risk. The Company highlights that the development and deployment of AI features carry challenges including the responsible use of training data, potential intellectual-property exposure, regulatory uncertainty across jurisdictions, and the risk that AI outputs may be inaccurate, biased, or harmful — any of which could damage the Company's reputation or expose it to liability [AAPL FY2024 Item 1A]. Apple also notes that competition in AI-enabled products is intensifying and that failure to keep pace could materially affect demand for its devices and services [AAPL FY2024 Item 1A].",
+    "cypher": null,
+    "graph_facts": [],
+    "chunks": [
+      {
+        "ticker": "AAPL",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "The Company is increasingly incorporating artificial intelligence, including generative AI, into its products and services. The development, deployment, and use of AI present risks and challenges that could adversely affect the Company's business... including the responsible use of new and evolving technologies, the use of personal data, intellectual property considerations, and the potential for inaccurate, biased, or harmful outputs."
+      },
+      {
+        "ticker": "AAPL",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "Competition in the markets for the Company's products and services is intense. The Company's competitors that sell mobile devices and personal computers based on other operating systems have aggressively cut prices and lowered their product margins. AI-enabled features are an increasing area of competitive differentiation, and the Company's failure to introduce competitive AI-enabled products and services could adversely affect demand."
+      }
+    ]
+  },
+  {
+    "question": "What does Microsoft say about cybersecurity risk in fiscal year 2024?",
+    "query_type": "semantic",
+    "answer": "Microsoft's FY2024 10-K discloses that cybersecurity threats have grown in volume and sophistication, citing nation-state actors and supply-chain compromise as material concerns [MSFT FY2024 Item 1A]. The Company notes that despite significant investment in security across its products and cloud services, prior incidents — including unauthorized access to a small set of corporate email accounts attributed to Midnight Blizzard — illustrate that breaches are not entirely preventable and could result in regulatory action, customer loss, and reputational harm [MSFT FY2024 Item 1A].",
+    "cypher": null,
+    "graph_facts": [],
+    "chunks": [
+      {
+        "ticker": "MSFT",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "Cybersecurity threats and sophisticated computer attacks have grown in frequency and severity. Threat actors — including nation-state actors, criminal organizations, and individuals — continue to target our systems, our customers' systems, and our supply chain. A successful attack could result in the theft, destruction, or unauthorized disclosure of confidential information."
+      },
+      {
+        "ticker": "MSFT",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "We have experienced security incidents, including the previously disclosed unauthorized access to a small number of corporate email accounts by a Russia-based threat actor we call Midnight Blizzard. Despite the implementation of security controls, no system is entirely safe from determined adversaries, and future incidents could occur."
+      }
+    ]
+  },
+  {
+    "question": "Who audits Tesla, and what other companies does that auditor audit?",
+    "query_type": "relational",
+    "answer": "Tesla is audited by PricewaterhouseCoopers LLP. Within the corpus, PwC is also the auditor of record for Apple, Microsoft, and Meta. NVIDIA is audited by a different firm (KPMG).",
+    "cypher": "MATCH (tesla:Company {name: 'Tesla, Inc.'})-[:AUDITED_BY]->(auditor:Company)\nMATCH (other:Company)-[:AUDITED_BY]->(auditor)\nWHERE other <> tesla\nRETURN auditor.name AS auditor, collect(other.name) AS other_clients",
+    "graph_facts": [
+      {
+        "auditor": "PricewaterhouseCoopers LLP",
+        "other_clients": ["Apple Inc.", "Microsoft Corporation", "Meta Platforms, Inc."]
+      }
+    ],
+    "chunks": []
+  },
+  {
+    "question": "List NVIDIA's named customers and competitors from its filings.",
+    "query_type": "relational",
+    "answer": "Per NVIDIA's recent filings, named customers include Microsoft, Amazon, Google, Meta, and Oracle (primarily as data-center / cloud-services purchasers). Disclosed competitors include AMD, Intel, and several internal-silicon programs at the major cloud providers themselves.",
+    "cypher": "MATCH (nvda:Company {ticker: 'NVDA'})\nOPTIONAL MATCH (nvda)<-[:CUSTOMER_OF]-(cust:Company)\nOPTIONAL MATCH (nvda)-[:COMPETES_WITH]->(comp:Company)\nRETURN collect(DISTINCT cust.name) AS customers, collect(DISTINCT comp.name) AS competitors",
+    "graph_facts": [
+      {
+        "customers": ["Microsoft Corporation", "Amazon.com, Inc.", "Alphabet Inc.", "Meta Platforms, Inc.", "Oracle Corporation"],
+        "competitors": ["Advanced Micro Devices, Inc.", "Intel Corporation"]
+      }
+    ],
+    "chunks": []
+  },
+  {
+    "question": "How do companies audited by PricewaterhouseCoopers describe climate-related risk?",
+    "query_type": "hybrid",
+    "answer": "Across PwC-audited filers in the corpus (Apple, Microsoft, Meta, Tesla), climate disclosures cluster on three themes: physical risk to operations and supply chains from extreme weather events [AAPL FY2024 Item 1A]; energy and water intensity of data centers and the difficulty of meeting clean-energy commitments at scale [MSFT FY2024 Item 1A]; and regulatory risk from evolving climate-disclosure regimes in the EU, California, and SEC rules [META FY2024 Item 1A]. Tesla's framing is distinctive — it positions climate transition as a tailwind for vehicle demand while still flagging raw-material sourcing as a vulnerability [TSLA FY2024 Item 1A].",
+    "cypher": "MATCH (filer:Company)-[:AUDITED_BY]->(auditor:Company {name: 'PricewaterhouseCoopers LLP'})\nRETURN collect(filer.ticker) AS tickers",
+    "graph_facts": [
+      {"tickers": ["AAPL", "MSFT", "META", "TSLA"]}
+    ],
+    "chunks": [
+      {
+        "ticker": "AAPL",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "The Company's operations and supply chain are subject to risks from climate-related events, including extreme weather, wildfires, and water scarcity, which could disrupt manufacturing, logistics, and the availability of key components."
+      },
+      {
+        "ticker": "MSFT",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "Operating our cloud platform requires significant energy and water resources. As we scale to meet AI demand, our ability to achieve our 2030 carbon-negative and water-positive commitments faces increasing pressure, and failure to do so could affect customer relationships and regulatory standing."
+      },
+      {
+        "ticker": "META",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "We are subject to a growing patchwork of climate-related disclosure requirements across jurisdictions, including in the European Union and California, which impose new reporting obligations and could subject us to enforcement risk."
+      },
+      {
+        "ticker": "TSLA",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "Demand for our products depends in part on the broader transition to sustainable energy. While this transition is favorable to our business, sourcing of lithium, nickel, and cobalt remains constrained, and pricing volatility in these materials could affect our gross margins."
+      }
+    ]
+  },
+  {
+    "question": "Of NVIDIA's named customers, which ones also disclose supply-chain concentration risk?",
+    "query_type": "hybrid",
+    "answer": "Among NVIDIA's named customers in the corpus, Microsoft, Amazon, Google (Alphabet), and Meta all disclose meaningful supply-chain concentration risk in their own filings — primarily centered on dependence on a small set of advanced-semiconductor suppliers (NVIDIA itself, AMD, and the limited number of leading-edge foundries, principally TSMC) [MSFT FY2024 Item 1A] [META FY2024 Item 1A]. Several explicitly call out that AI-infrastructure demand has outpaced suppliers' near-term capacity, creating both cost and availability pressure [MSFT FY2024 Item 1A].",
+    "cypher": "MATCH (nvda:Company {ticker: 'NVDA'})<-[:CUSTOMER_OF]-(cust:Company)\nMATCH (cust)-[:DISCLOSES_RISK]->(r:Risk {category: 'supply_chain'})\nRETURN cust.ticker AS ticker, collect(r.summary) AS risks",
+    "graph_facts": [
+      {"ticker": "MSFT", "risks": ["concentration of AI-accelerator supply among a small number of vendors"]},
+      {"ticker": "AMZN", "risks": ["dependence on a limited set of leading-edge semiconductor suppliers"]},
+      {"ticker": "GOOGL", "risks": ["constrained availability of advanced AI accelerators"]},
+      {"ticker": "META", "risks": ["concentration of GPU supply for AI-infrastructure buildout"]}
+    ],
+    "chunks": [
+      {
+        "ticker": "MSFT",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "Our ability to scale AI services depends on the availability of specialized hardware. The market for AI accelerators is concentrated among a small number of suppliers, and shortages or pricing pressure could materially affect our ability to meet customer demand for AI capabilities."
+      },
+      {
+        "ticker": "META",
+        "fiscal_year": 2024,
+        "item_no": "1A",
+        "text": "We rely on a limited number of suppliers for the GPUs and other specialized hardware required for our AI infrastructure. Any disruption in supply, or our inability to obtain sufficient capacity, could delay our infrastructure build-out and adversely affect our results."
+      }
+    ]
+  }
+]
