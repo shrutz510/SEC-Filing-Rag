@@ -48,7 +48,7 @@ Default stack is **fully local and free**. Costs $0 to run end-to-end.
 ### Install
 
 ```bash
-git clone https://github.com/<your-username>/sec-filing-rag
+git clone https://github.com/shrutz510/SEC-Filing-Rag
 cd sec-filing-rag
 uv sync                                 # or: pip install -e .
 
