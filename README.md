@@ -4,7 +4,7 @@
 
 A natural-language assistant for public-company filings that **routes between semantic retrieval and multi-hop graph traversal** depending on the question. Pure vector RAG can summarize disclosures; only the graph can answer "which of NVIDIA's named customers also disclose supply-chain concentration on their own chip suppliers?"
 
-**Live demo (static, pre-computed):** https://&lt;your-username&gt;.github.io/sec-filing-rag/
+**Live demo (static, pre-computed):** https://shrutz510.github.io/SEC-Filing-Rag/
 
 ---
 
